@@ -1,89 +1,85 @@
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Zahlenpuzzle extends Schiebepuzzle
+public class NumberPuzzle extends SlidingPuzzle
 {
-    private int[] aZahlenfeld;
+    private int[] numberField;
     private Random random;
 
-    public Zahlenpuzzle(int pGroesse)
+    public NumberPuzzle(int pGroesse)
     {
-        // Ausf�hrung des Konstruktors von der Mutterklasse
         super(pGroesse);
         random = new Random();
-        erzeugePuzzleFeld();
+        initPuzzleField();
     }
 
-    // Schaue ob Puzzle gel�st wurde
+    // Looks if puzzle got solved
     @Override
     public boolean puzzleGeloest()
     {
-        // Schleife durch die Liste
-        for (int i = 0; i < aZahlenfeld.length; i++)
+        for (int i = 0; i < numberField.length; i++)
         {
-            // Damit das Puzzle als gel�st gilt, m�ssen sich die Zahlen in
-            // aufsteigender Form befinden. Z. B. Gr��e = 4; [1,2,3,-1].
-            // Dabei wird geschaut ob das nicht der Fall ist.
-            if (aZahlenfeld[i] != i + 1 && aZahlenfeld[i] != -1)
+            // The puzzle counts as solved, when the numbers are in a
+            // ascending order. For example if the size of the puzzle
+            // were to be 4, then the puzzle should look like this
+            // if it is solved: [1,2,3,-1]
+            if (numberField[i] != i + 1 && numberField[i] != -1)
             {
-                // Nicht gel�st
+                // Not solved
                 return false;
             }
         }
-        // gel�st
+        // Solved
         return true;
     }
 
-    // Erzeugung des Zahlenfeldes
-    private void erzeugePuzzleFeld()
+    // Initializes the number field
+    private void initPuzzleField()
     {
-        int groesse;
+        int size;
 
-        groesse = gibGroesse();
+        size = getSize();
 
-        // Zahlenfeld erstellen und mischen
-        aZahlenfeld = zieheZufallszahlen(groesse);
+        // Create number field and shuffle it
+        numberField = shuffleNumberField(size);
     }
 
-    // Index der Leertaste zur�ckgeben
-    public int gibLeerTasteIdx()
+    // Returns the index of the spacebar
+    public int getIndexOfSpacebar()
     {
-        // Schleife durch die Liste
-        for (int i = 0; i < aZahlenfeld.length; i++)
+        for (int i = 0; i < numberField.length; i++)
         {
-            // Leertaste wird als -1 dargestellt
-            if (aZahlenfeld[i] == -1)
+            // The spacebar is depicted as a -1
+            if (numberField[i] == -1)
             {
-                // Gebe sein Index zur�ck
+                // Return the index
                 return i;
             }
         }
-        return -1; // Error, da immer eine Leertaste geben muss
+        return -1; // Error, because there always should be a spacebar
     }
 
-    // Leertaste wird mit einer Nachbartaste getauscht; Es wird auch �berpr�ft
-    // ob die zwei Tasten Nachbaren sind
-    public void tauscheTastenwerte(int pIdxTaste, int pIdxLeertaste)
+    // Swaps spacebar with a neighbor field. These two must be neighbors
+    public void swapFieldValues(int pSpacebarIndex, int pFieldIndex)
     {
-        int x1, y1, x2, y2, groesse, zwischenspeicher;
-        boolean benachbart = false;
+        int x1, y1, x2, y2, size, temp;
+        boolean isNeighbor = false;
 
-        groesse = gibGroesse();
+        size = getSize();
 
-        // F�r beide Tasten den Index aus dem eindimensionalen Array in x und y
-        // Komponenten zerlegen. (siehe Abiturpr�fung Aufgabe 4.5.2)
-        x1 = pIdxTaste % groesse;
-        x2 = pIdxLeertaste % groesse;
+        // Convert index of field to x and y components
+        x1 = pSpacebarIndex % size;
+        x2 = pFieldIndex % size;
 
-        y1 = pIdxTaste / groesse;
-        y2 = pIdxLeertaste / groesse;
+        y1 = pSpacebarIndex / size;
+        y2 = pFieldIndex / size;
 
-        // �berpr�fung der Nachbarschaft (siehe Abiturpr�fung Aufgabe 4.5.2.2)
+        // Checks if they are neigbors
         if (x1 == x2)
         {
             if (Math.abs(y1 - y2) == 1)
             {
-                benachbart = true;
+                isNeighbor = true;
             }
         }
         else
@@ -91,153 +87,145 @@ public class Zahlenpuzzle extends Schiebepuzzle
         {
             if (Math.abs(x1 - x2) == 1)
             {
-                benachbart = true;
+                isNeighbor = true;
             }
         }
 
-        // Wenn die Tasten benachbart sind
-        if (benachbart)
+        if (isNeighbor)
         {
-            // Pl�tze tauschen
-            zwischenspeicher = aZahlenfeld[pIdxTaste];
-            aZahlenfeld[pIdxTaste] = aZahlenfeld[pIdxLeertaste];
-            aZahlenfeld[pIdxLeertaste] = zwischenspeicher;
+            // Swap places
+            temp = numberField[pSpacebarIndex];
+            numberField[pSpacebarIndex] = numberField[pFieldIndex];
+            numberField[pFieldIndex] = temp;
         }
     }
 
-    // Das Zahlenfeld wird gemischt
-    private int[] zieheZufallszahlen(int pGroesse)
+    // Shuffles the number field
+    private int[] shuffleNumberField(int pSize)
     {
-        // Liste mit Zahlen wird erstellt
-        int[] zF = new int[pGroesse * pGroesse];
+        // Create number field
+        int[] tempNumberField = new int[pSize * pSize];
 
-        // Schleife durch die Liste und nummeriere sie durch (aufsteigend). Zum
-        // Beispiel: Gr��e = 4; zF = [1,2,3,-1]
-        for (int j = 0; j < zF.length; j++)
+        // Numbering the field in ascending order
+        for (int j = 0; j < tempNumberField.length; j++)
         {
-            // Wenn es sich nicht um das letzte Element handelt
-            if (j != zF.length - 1)
+            // If index is not last
+            if (j != tempNumberField.length - 1)
             {
-                zF[j] = j + 1;
+                tempNumberField[j] = j + 1;
             }
             else
             {
-                // Die Leertaste wird als -1 dargestellt
-                zF[j] = -1;
+                // The last index is the spacebar
+                tempNumberField[j] = -1;
             }
         }
 
-        aZahlenfeld = zF;
+        numberField = tempNumberField;
 
-        // Wie oft die Zahlen miteinander getauscht werden
-        int anzahlTauschAktionen = 1000;
-        boolean geloest;
+        // Number of shuffles
+        int shuffles = 1000;
+        boolean isSolved;
 
-        // Puzzle wird 1000 gemischt
-        mische(pGroesse, anzahlTauschAktionen);
+        // Shuffling puzzle 1000 times
+        shuffle(pSize, shuffles);
 
-        // Es kann sein (besonders beim 2x2 Puzzle), dass nach den 1000
-        // Tauschaktionen das Puzzle nicht gemischt wurde, sondern zur�ck auf
-        // den Startzustand kommt. Deshalb wird es �berpr�ft ob das Puzzle nach
-        // dem Mischen "gel�st" wurde. Wenn ja dann wird das Puzzle solange
-        // gemischt bis das Puzzle richtig gemischt wurde.
-        geloest = puzzleGeloest();
-        while (geloest)
+        // It is possible that after the shuffle, the puzzle isn't still mixed.
+        // That's why it checks if the puzzle is solved and shuffles it again
+        // till it is mixed indeed
+        isSolved = puzzleGeloest();
+        while (isSolved)
         {
-            mische(pGroesse, anzahlTauschAktionen);
-            geloest = puzzleGeloest();
+            shuffle(pSize, shuffles);
+            isSolved = puzzleGeloest();
         }
 
-        // Gemischtes Zahlenfeld zur�ckgeben
-        return aZahlenfeld;
+        // Return the shuffled field
+        return numberField;
     }
 
-    // Puzzle wird n mal gemischt
-    private void mische(int pGroesse, int pAnzahlTauschAktionen)
+    // Field gets n times shuffled, this way the created puzzle
+    // will always have a solution
+    private void shuffle(int pSize, int pSwaps)
     {
         int x, y;
 
-        // Das Zahlenfeld mischen; Dabei werden die Zahlen von der
-        // obenerstellten Liste zuf�llig miteinander getauscht, damit immer ein
-        // l�sbares Puzzle generiert werden kann
-        for (int i = 0; i < pAnzahlTauschAktionen; i++)
+        for (int i = 0; i < pSwaps; i++)
         {
-            // Index der Leertaste holen
-            int idxLeerTaste = gibLeerTasteIdx();
+            // Get index of spacebar
+            int indexOfSpacebar = getIndexOfSpacebar();
 
-            // Index der Leertaste wird mithilfe von x und y in einem
-            // zweidimensionalen Array dargestellt
-            x = idxLeerTaste % pGroesse;
-            y = idxLeerTaste / pGroesse;
+            // Index of the spacebar is depicted as x and y coordinates in
+            // a two dimensional array
+            x = indexOfSpacebar % pSize;
+            y = indexOfSpacebar / pSize;
 
-            // Index eines zuf�lligen Nachbar holen und mit diesen den Platz
-            // tauschen
-            int idxNachbar = gibZufaelligerNachbar(x, y);
-            tauscheTastenwerte(idxNachbar, idxLeerTaste);
+            // Get index of a random neighbor and swap places with him
+            int indexOfNeighbor = getRandomNeighbor(x, y);
+            swapFieldValues(indexOfNeighbor, indexOfSpacebar);
         }
     }
 
-    // Zuf�lliger und g�ltiger Nachbar zur�ckgeben
-    private int gibZufaelligerNachbar(int pX, int pY)
+    // Returns random and valid neighbor of a field
+    private int getRandomNeighbor(int pX, int pY)
     {
-        int xNachbar, yNachbar;
-        int idxNachbar;
-        int factor = gibGroesse();
-        ArrayList<Integer> nachbaren = new ArrayList<Integer>();
+        int xNeighbor, yNeighbor;
+        int indexOfNeighbor;
+        int factor = getSize();
+        ArrayList<Integer> neighbors = new ArrayList<Integer>();
 
-        // Nachbar von links
-        xNachbar = pX - 1;
-        yNachbar = pY;
+        // Left neighbor
+        xNeighbor = pX - 1;
+        yNeighbor = pY;
 
-        // Formel um auf den Index des Nachbars zu kommen
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Formula to get index of neighbor
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        // Ist der Index des Nachbars g�ltig? Eine Taste kann maximal vier
-        // g�ltige Nachbaren haben. Eine Taste die sich in einer Ecke befindet
-        // hat z. B. nur zwei g�ltige Nachbaren. Deshalb muss es �berpr�ft
-        // werden, ob der Nachbar g�ltig ist.
-        if (idxNachbar >= 0 && idxNachbar < aZahlenfeld.length)
+        // Checks if the index of neighbor is valid, because some fields,
+        // especially those in corners, have four neighbors but only two
+        // are valid
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < numberField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Nachbar von rechts
-        xNachbar = pX + 1;
-        yNachbar = pY;
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Right neighbor
+        xNeighbor = pX + 1;
+        yNeighbor = pY;
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        if (idxNachbar >= 0 && idxNachbar < aZahlenfeld.length)
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < numberField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Nachbar von oben
-        xNachbar = pX;
-        yNachbar = pY - 1;
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Upper neighbor
+        xNeighbor = pX;
+        yNeighbor = pY - 1;
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        if (idxNachbar >= 0 && idxNachbar < aZahlenfeld.length)
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < numberField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Nachbar von unten
-        xNachbar = pX;
-        yNachbar = pY + 1;
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Bottom neighbor
+        xNeighbor = pX;
+        yNeighbor = pY + 1;
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        if (idxNachbar >= 0 && idxNachbar < aZahlenfeld.length)
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < numberField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Ein zuf�lliger Nachbar zur�ckgeben
-        return nachbaren.get(random.nextInt(nachbaren.size()));
+        // Return a random neighbor
+        return neighbors.get(random.nextInt(neighbors.size()));
     }
 
     // Getter
-    public int[] gibZahlenFeld()
+    public int[] getNumberField()
     {
-        return aZahlenfeld;
+        return numberField;
     }
 }
