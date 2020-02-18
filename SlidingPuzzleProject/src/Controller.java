@@ -1,242 +1,226 @@
 import java.awt.Image;
 
-public class Steuerung
+public class Controller
 {
-    private GUI dieGUI;
+    private GUI gui;
 
-    private String aZustand;
-    private int aIntervall;
-    private int aMaxKlicks;
-    private char aTyp;
+    private String state;
+    private int interval;
+    private int numberOfClicks;
+    private char puzzleType;
 
-    private Schiebepuzzle einPuzzle;
-    private TimerPuzzle derTimer;
+    private SlidingPuzzle puzzle;
+    private Timer timer;
 
-    public Steuerung(GUI pDieGui)
+    public Controller(GUI pGUI)
     {
-        // Erstellung der Assoziation zur GUI
-        dieGUI = pDieGui;
+        gui = pGUI;
 
-        // Startzustand
-        aZustand = "init";
+        // Starting state
+        state = "init";
 
-        // Intervall f�r den Timer in Millisekunden
-        aIntervall = 2000;
+        // Interval of timer in milliseconds
+        interval = 2000;
     }
 
-    // Ein neues Spiel wird gestartet
-    public void neuesSpiel(char pTyp, int pGroesse)
+    // Start new game
+    public void startNewGame(char pType, int pSize)
     {
-        // Zustandswechsel
-        aZustand = "running";
-        aTyp = pTyp;
+        // State change
+        state = "running";
+        puzzleType = pType;
 
-        // Je nach Gr��e des Puzzles wird die Anzahl der Klicks ausgew�hlt
-        switch (pGroesse)
+        // In proportion with the size of the puzzle, the number of
+        // clicks is chosen
+        switch (pSize)
         {
             case 2:
-                aMaxKlicks = 10;
+                numberOfClicks = 10;
                 break;
             case 3:
-                aMaxKlicks = 200;
+                numberOfClicks = 200;
                 break;
             case 4:
-                aMaxKlicks = 400;
+                numberOfClicks = 400;
                 break;
         }
 
-        // Erstellung der Assoziation zum Timer; dabei startet auch der Timer
-        derTimer = new TimerPuzzle(this, aIntervall);
+        // Start timer
+        timer = new Timer(this, interval);
 
-        // Zahlenpuzzle
-        if (pTyp == 'z')
+        // Number field
+        if (pType == 'z')
         {
-            // Neues Puzzle generieren
-            einPuzzle = new Zahlenpuzzle(pGroesse);
+            // Generate new puzzle
+            puzzle = new NumberPuzzle(pSize);
 
-            // Das gemischte Puzzle wird an die GUI weitergegeben
-            dieGUI.setzeTastenZahlen(((Zahlenpuzzle) einPuzzle).gibZahlenFeld());
+            // The shuffled puzzle is sent to the user interface
+            gui.setNumberOfFields(((NumberPuzzle) puzzle).getNumberField());
 
-            // GUI aktualisieren
-            dieGUI.melde(1);
-            dieGUI.schreibeRestKlicks(aMaxKlicks);
+            // Update the user interface
+            gui.message(1);
+            gui.updateRemainedClicks(numberOfClicks);
         }
         else
-            // Bilderpuzzle
-            if (pTyp == 'b')
+            // Image puzzle
+            if (pType == 'b')
             {
-                // L�sung des Puzzles wird von der GUI genommen
-                Image[] loesung = dieGUI.getBildTeile();
+                // The user interface sends the solution
+                Image[] solution = gui.getImageParts();
 
-                // Neues Puzzle generieren
-                einPuzzle = new Bilderpuzzle(pGroesse, loesung);
+                // Generate new puzzle
+                puzzle = new ImagePuzzle(pSize, solution);
 
-                // Das gemischte Puzzle wird an die GUI weitergegeben
-                dieGUI.setzeTastenBilder(((Bilderpuzzle) einPuzzle)
-                        .gibBilderFeld());
+                // The shuffled puzzle is sent to the user interface
+                gui.setImageOfFields(((ImagePuzzle) puzzle)
+                        .getImageField());
 
-                // GUI aktualisieren
-                dieGUI.melde(1);
-                dieGUI.schreibeRestKlicks(aMaxKlicks);
+                // Update the user interface
+                gui.message(1);
+                gui.updateRemainedClicks(numberOfClicks);
             }
     }
 
-    // Spieler dr�ckt auf eine Taste
-    public void tastenKlick(int pIdxTaste)
+    // Player clicks on a field
+    public void onClickedField(int pFieldIndex)
     {
-        // Taste darf nur im Zustand "running" gedr�ckt werden
-        if (aZustand == "running")
+        // Fields are only allowed to be clicked, when the state
+        // corresponds to 'running'
+        if (state.equals("running"))
         {
-            // Timer wird gestoppt, da der Spieler vor dem Intervall eine Taste
-            // gedr�ckt hat
-            derTimer.stop();
+            // Stop timer, because the player reacted before the time event got triggered
+            timer.stop();
 
-            // Zahlenpuzzle
-            if (aTyp == 'z')
+            // Number puzzle
+            if (puzzleType == 'z')
             {
-                int idxLeerTaste;
-                int anzahlKlicks;
-                int[] dasZahlenFeld;
-                boolean geloest;
+                int indexOfSpacebar;
+                int numberOfClicks;
+                int[] numberField;
+                boolean isSolved;
 
-                // Leertaste wird lokalisiert
-                idxLeerTaste = ((Zahlenpuzzle) einPuzzle).gibLeerTasteIdx();
+                indexOfSpacebar = ((NumberPuzzle) puzzle).getIndexOfSpacebar();
 
-                // Gedr�ckte Taste mit der Leertaste tauschen
-                ((Zahlenpuzzle) einPuzzle).tauscheTastenwerte(pIdxTaste,
-                        idxLeerTaste);
+                // Swap clicked field with the spacebar
+                ((NumberPuzzle) puzzle).swapFieldValues(pFieldIndex,
+                        indexOfSpacebar);
 
-                // Das neue Zahlenfeld holen und die GUI aktualisieren
-                dasZahlenFeld = ((Zahlenpuzzle) einPuzzle).gibZahlenFeld();
-                dieGUI.setzeTastenZahlen(dasZahlenFeld);
+                // Update the user interface with the new field
+                numberField = ((NumberPuzzle) puzzle).getNumberField();
+                gui.setNumberOfFields(numberField);
 
-                // anzahlKlicks inkrementieren und die GUI aktualisieren
-                anzahlKlicks = ((Zahlenpuzzle) einPuzzle).inkrAnzahlKlicks();
-                dieGUI.schreibeRestKlicks(aMaxKlicks - anzahlKlicks);
-
-                // schaue ob Puzzle gel�st wurde
-                geloest = ((Zahlenpuzzle) einPuzzle).puzzleGeloest();
-                if (geloest) // ja
+                // Increment number of clicks and update the user interface
+                numberOfClicks = ((NumberPuzzle) puzzle).incrementNumOfClicks();
+                gui.updateRemainedClicks(this.numberOfClicks - numberOfClicks);
+                isSolved = ((NumberPuzzle) puzzle).puzzleSolved();
+                if (isSolved)
                 {
-                    // Zustandswechsel und GUI aktualisieren
-                    aZustand = "won";
-                    dieGUI.melde(3);
+                    // Change of state and update of user interface
+                    state = "won";
+                    gui.message(3);
                 }
                 else
-                // nein
                 {
-                    // Wenn Puzzle nicht gel�st wurde und Spieler keine Klicks
-                    // mehr hat -> verloren
-                    if (anzahlKlicks == aMaxKlicks)
+                    // If puzzle is unsolved and the player has no remaining clicks
+                    if (numberOfClicks == this.numberOfClicks)
                     {
-                        // Zustandswechsel und GUI aktualisieren
-                        aZustand = "lost";
-                        dieGUI.melde(2);
+                        // Change of state and update of user interface
+                        state = "lost";
+                        gui.message(2);
                     }
-                    // Spieler hat noch Klicks
+                    // Player still has clicks
                     else
                     {
-                        // Timer zur�cksetzen
-                        derTimer.restart();
+                        // Reset the timer
+                        timer.restart();
                     }
                 }
             }
             else
-                // Bilderpuzzle
-                if (aTyp == 'b')
+                // Image field
+                if (puzzleType == 'b')
                 {
-                    int idxLeerTaste;
-                    int anzahlKlicks;
-                    Image[] dasBilderFeld;
-                    boolean geloest;
+                    int indexOfSpacebar;
+                    int numberOfClicks;
+                    Image[] imageField;
+                    boolean isSolved;
 
-                    // Leertaste wird lokalisiert
-                    idxLeerTaste = ((Bilderpuzzle) einPuzzle).gibLeerTasteIdx();
+                    indexOfSpacebar = ((ImagePuzzle) puzzle).getIndexOfSpacebar();
 
-                    // Gedr�ckte Taste mit der Leertaste tauschen
-                    ((Bilderpuzzle) einPuzzle).tauscheTastenwerte(pIdxTaste,
-                            idxLeerTaste);
+                    ((ImagePuzzle) puzzle).swapFieldValues(pFieldIndex,
+                            indexOfSpacebar);
 
-                    // Das neue Bilderfeld holen und die GUI aktualisieren
-                    dasBilderFeld = ((Bilderpuzzle) einPuzzle).gibBilderFeld();
-                    dieGUI.setzeTastenBilder(dasBilderFeld);
+                    imageField = ((ImagePuzzle) puzzle).getImageField();
+                    gui.setImageOfFields(imageField);
 
-                    // anzahlKlicks inkrementieren und die GUI aktualisieren
-                    anzahlKlicks = ((Bilderpuzzle) einPuzzle)
-                            .inkrAnzahlKlicks();
-                    dieGUI.schreibeRestKlicks(aMaxKlicks - anzahlKlicks);
+                    numberOfClicks = ((ImagePuzzle) puzzle)
+                            .incrementNumOfClicks();
+                    gui.updateRemainedClicks(this.numberOfClicks - numberOfClicks);
 
-                    // schaue ob Puzzle gel�st wurde
-                    geloest = ((Bilderpuzzle) einPuzzle).puzzleGeloest();
-                    if (geloest) // ja
+                    isSolved = ((ImagePuzzle) puzzle).puzzleSolved();
+                    if (isSolved)
                     {
-                        // Zustandswechsel und GUI aktualisieren
-                        aZustand = "won";
-                        dieGUI.melde(3);
+                        state = "won";
+                        gui.message(3);
                     }
                     else
-                    // nein
                     {
-                        // Hat der Spieler noch Klicks?
-                        if (anzahlKlicks == aMaxKlicks)
+                        if (numberOfClicks == this.numberOfClicks)
                         {
-                            // Zustandswechsel und GUI aktualisieren
-                            aZustand = "lost";
-                            dieGUI.melde(2);
+                            state = "lost";
+                            gui.message(2);
                         }
                         else
                         {
-                            // Timer zur�cksetzen
-                            derTimer.restart();
+                            timer.restart();
                         }
                     }
                 }
         }
     }
 
-    // Beim Ablauf des Intervalls, bevor der Spieler eine Taste dr�ckt
-    public void timerEreignis()
+    // If player doesn't click a field in time
+    public void timerEvent()
     {
-        int anzahlKlicks = 0;
+        int numberOfClicks = 0;
 
-        // Zahlenpuzzle
-        if (aTyp == 'z')
+        // Number field
+        if (puzzleType == 'z')
         {
-            // anzahlKlicks inkrementieren und die GUI aktualisieren
-            anzahlKlicks = ((Zahlenpuzzle) einPuzzle).inkrAnzahlKlicks();
-            dieGUI.schreibeRestKlicks(aMaxKlicks - anzahlKlicks);
+            // Increment number of clicks and update the user interface
+            numberOfClicks = ((NumberPuzzle) puzzle).incrementNumOfClicks();
+            gui.updateRemainedClicks(this.numberOfClicks - numberOfClicks);
         }
         else
-            // Bilderpuzzle
-            if (aTyp == 'b')
+            // Image field
+            if (puzzleType == 'b')
             {
-                // anzahlKlicks inkrementieren und die GUI aktualisieren
-                anzahlKlicks = ((Bilderpuzzle) einPuzzle).inkrAnzahlKlicks();
-                dieGUI.schreibeRestKlicks(aMaxKlicks - anzahlKlicks);
+                numberOfClicks = ((ImagePuzzle) puzzle).incrementNumOfClicks();
+                gui.updateRemainedClicks(this.numberOfClicks - numberOfClicks);
             }
 
-        // Wenn Spieler keine Klicks mehr hat -> verloren
-        if (anzahlKlicks == aMaxKlicks)
+        // If the player has no clicks
+        if (numberOfClicks == this.numberOfClicks)
         {
-            // Zustandswechsel und GUI aktualisieren
-            aZustand = "lost";
-            dieGUI.melde(2);
+            // State change and update the user interface
+            state = "lost";
+            gui.message(2);
         }
         else
         {
-            // Sonst wird der Timer zur�ckgesetzt
-            derTimer.restart();
+            // Reset the timer
+            timer.restart();
         }
     }
 
     // Getter und Setter
-    public String getZustand()
+    public String getState()
     {
-        return aZustand;
+        return state;
     }
 
-    public void setZustand(String pZustand)
+    public void setState(String pState)
     {
-        aZustand = pZustand;
+        state = pState;
     }
 }

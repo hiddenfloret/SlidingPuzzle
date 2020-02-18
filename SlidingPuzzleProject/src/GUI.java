@@ -32,55 +32,54 @@ public class GUI extends JFrame
 {
     // JPanels
     private JPanel contentPane;
-    private JPanel panelPuzzle; // JPanel wo das Puzzle gezeichnet wird
+    private JPanel panelPuzzle; // where the puzzle will be drawn
 
-    // JFrame f�r das Referenzbild
-    private JFrame frameReferenz;
+    // JFrame for the reference image
+    private JFrame frameReference;
 
-    // Radiobuttons
-    private JRadioButton rdbtnZP;
-    private JRadioButton rdbtnBP;
-    private JRadioButton rdbtn2;
-    private JRadioButton rdbtnGrn;
-    private JRadioButton rdbtnBlau;
-    private JRadioButton rdbtnRot;
-    private JRadioButton rdbtn3;
-    private JRadioButton rdbtn4;
-    private JRadioButton rdbtnBild3;
-    private JRadioButton rdbtnBild2;
-    private JRadioButton rdbtnBild1;
+    // Radio buttons
+    private JRadioButton rdbtnNumberPuzzle;
+    private JRadioButton rdbtnImagePuzzle;
+    private JRadioButton rdbtnSizeTwo;
+    private JRadioButton rdbtnGreen;
+    private JRadioButton rdbtnBlue;
+    private JRadioButton rdbtnRed;
+    private JRadioButton rdbtnSizeThree;
+    private JRadioButton rdbtnSizeFour;
+    private JRadioButton rdbtnImage3;
+    private JRadioButton rdbtnImage2;
+    private JRadioButton rdbtnImage1;
 
-    // Buttongroups
-    private ButtonGroup groupFarben;
-    private ButtonGroup groupPuzzleArt;
-    private ButtonGroup groupGroesse;
-    private ButtonGroup groupBilder;
+    // Button groups
+    private ButtonGroup groupColors;
+    private ButtonGroup groupPuzzleType;
+    private ButtonGroup groupSize;
+    private ButtonGroup groupImages;
 
     // JButtons
-    private JButton aTastenFeld[]; // Puzzle besteht aus einer Liste von
-    // JButtons
-    private JButton btnNeuesSpiel;
-    private JButton btnSpielBeenden;
+    private JButton listOfFields[]; // Puzzle is composed of a list of JButtons
+    private JButton btnNewGame;
+    private JButton btnCloseGame;
 
     // Labels
-    private JLabel lblMeldungsText;
-    private JLabel lblRestKlicks;
+    private JLabel lblMessageText;
+    private JLabel lblNumberOfClicks;
 
-    // Eigenschaften des Puzzles
-    private char aTyp;
-    private char aFarbe;
-    private int aGroesse;
-    private int groessePanelPuzzle;
+    // Properties of the puzzle
+    private char type;
+    private char color;
+    private int size;
+    private int sizeOfPanelPuzzle;
 
-    private Steuerung dieSteuerung;
+    private Controller controller;
 
-    // Teilung des Bildes
-    private Image geaendertesBild;
-    private ImageIcon anfangsBild;
-    private Image[] bildTeile;
-    private String dateiPfad;
+    // Image splitting
+    private Image changedImage;
+    private ImageIcon startingImage;
+    private Image[] imageParts;
+    private String filePath;
 
-    private boolean bildAusgewaehlt;
+    private boolean isImageSelected;
 
     public static void main(String[] args)
     {
@@ -104,7 +103,7 @@ public class GUI extends JFrame
     public GUI()
     {
         setResizable(false);
-        setTitle("Schiebepuzzle");
+        setTitle("Sliding puzzle");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 816, 725);
         setLocationRelativeTo(null);
@@ -112,18 +111,18 @@ public class GUI extends JFrame
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
-        JMenu mnDatei = new JMenu("Datei");
-        menuBar.add(mnDatei);
+        JMenu mnFile = new JMenu("File");
+        menuBar.add(mnFile);
 
-        JMenuItem mntmNewMenuItem = new JMenuItem("Bild laden");
-        mntmNewMenuItem.addActionListener(new ActionListener()
+        JMenuItem mntmLoadImage = new JMenuItem("Load image");
+        mntmLoadImage.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                clickBildOeffnen();
+                clickOpenImage();
             }
         });
-        mnDatei.add(mntmNewMenuItem);
+        mnFile.add(mntmLoadImage);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -135,485 +134,479 @@ public class GUI extends JFrame
         contentPane.add(panelPuzzle);
         panelPuzzle.setLayout(null);
 
-        // Gr��e von panelPuzzle wird gespeichert
-        groessePanelPuzzle = panelPuzzle.getWidth();
+        // The size of the panelPuzzle is saved
+        sizeOfPanelPuzzle = panelPuzzle.getWidth();
 
-        lblMeldungsText = new JLabel(
-                "Art, Farbe, Gr\u00F6\u00DFe w\u00E4hlen; dann Spiel starten");
-        lblMeldungsText.setHorizontalAlignment(SwingConstants.CENTER);
-        lblMeldungsText.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        lblMeldungsText.setBounds(65, 625, 500, 33);
-        contentPane.add(lblMeldungsText);
+        lblMessageText = new JLabel(
+                "Choose type, color and size of the puzzle then start the game");
+        lblMessageText.setHorizontalAlignment(SwingConstants.CENTER);
+        lblMessageText.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        lblMessageText.setBounds(65, 625, 500, 33);
+        contentPane.add(lblMessageText);
 
-        JPanel panelPuzzleArt = new JPanel();
-        panelPuzzleArt.setBorder(new TitledBorder(UIManager
-                .getBorder("TitledBorder.border"), "Puzzle-Art",
+        JPanel panelPuzzleType = new JPanel();
+        panelPuzzleType.setBorder(new TitledBorder(UIManager
+                .getBorder("TitledBorder.border"), "Type of Puzzle",
                 TitledBorder.CENTER, TitledBorder.TOP, new Font("Tahoma",
                 Font.PLAIN, 16), null));
-        panelPuzzleArt.setBounds(620, 11, 171, 121);
-        contentPane.add(panelPuzzleArt);
-        panelPuzzleArt.setLayout(null);
+        panelPuzzleType.setBounds(620, 11, 171, 121);
+        contentPane.add(panelPuzzleType);
+        panelPuzzleType.setLayout(null);
 
-        JPanel panelBilder = new JPanel();
-        panelBilder.setBorder(new TitledBorder(UIManager
-                .getBorder("TitledBorder.border"), "Bilder",
+        JPanel panelImages = new JPanel();
+        panelImages.setBorder(new TitledBorder(UIManager
+                .getBorder("TitledBorder.border"), "Images",
                 TitledBorder.CENTER, TitledBorder.TOP, new Font("Tahoma",
                 Font.PLAIN, 16), null));
-        panelBilder.setBounds(620, 351, 171, 145);
-        contentPane.add(panelBilder);
-        panelBilder.setLayout(null);
+        panelImages.setBounds(620, 351, 171, 145);
+        contentPane.add(panelImages);
+        panelImages.setLayout(null);
 
-        rdbtnBild1 = new JRadioButton("Bild 1");
-        rdbtnBild1.addActionListener(new ActionListener()
+        rdbtnImage1 = new JRadioButton("Image 1");
+        rdbtnImage1.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                bildAuswaehlen(0);
-                aktiviereNeuesSpiel();
+                selectImage(0);
+                activateNewGame();
             }
         });
-        rdbtnBild1.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnBild1.setBounds(6, 31, 159, 23);
-        panelBilder.add(rdbtnBild1);
+        rdbtnImage1.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnImage1.setBounds(6, 31, 159, 23);
+        panelImages.add(rdbtnImage1);
 
-        rdbtnBild2 = new JRadioButton("Bild 2");
-        rdbtnBild2.addActionListener(new ActionListener()
+        rdbtnImage2 = new JRadioButton("Image 2");
+        rdbtnImage2.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                bildAuswaehlen(1);
-                aktiviereNeuesSpiel();
+                selectImage(1);
+                activateNewGame();
             }
         });
-        rdbtnBild2.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnBild2.setBounds(6, 68, 159, 23);
-        panelBilder.add(rdbtnBild2);
+        rdbtnImage2.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnImage2.setBounds(6, 68, 159, 23);
+        panelImages.add(rdbtnImage2);
 
-        rdbtnBild3 = new JRadioButton("Bild 3");
-        rdbtnBild3.addActionListener(new ActionListener()
+        rdbtnImage3 = new JRadioButton("Image 3");
+        rdbtnImage3.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                bildAuswaehlen(2);
-                aktiviereNeuesSpiel();
+                selectImage(2);
+                activateNewGame();
             }
         });
-        rdbtnBild3.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnBild3.setBounds(6, 104, 159, 23);
-        panelBilder.add(rdbtnBild3);
+        rdbtnImage3.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnImage3.setBounds(6, 104, 159, 23);
+        panelImages.add(rdbtnImage3);
 
-        rdbtnZP = new JRadioButton("Zahlenpuzzle");
-        rdbtnZP.addActionListener(new ActionListener()
+        rdbtnNumberPuzzle = new JRadioButton("Number puzzle");
+        rdbtnNumberPuzzle.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aTyp = 'z';
-                farbenAuswahlAktivieren();
-                bilderAuswahlDeaktivieren();
-                aktiviereNeuesSpiel();
+                type = 'z';
+                activateColorSelection();
+                deactivateImageSelection();
+                activateNewGame();
             }
         });
-        rdbtnZP.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnZP.setBounds(6, 33, 159, 23);
-        panelPuzzleArt.add(rdbtnZP);
+        rdbtnNumberPuzzle.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnNumberPuzzle.setBounds(6, 33, 159, 23);
+        panelPuzzleType.add(rdbtnNumberPuzzle);
 
-        rdbtnBP = new JRadioButton("Bilderpuzzle");
-        rdbtnBP.addActionListener(new ActionListener()
+        rdbtnImagePuzzle = new JRadioButton("Image puzzle");
+        rdbtnImagePuzzle.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aTyp = 'b';
-                farbenAuswahlDeaktivieren();
-                bilderAuswahlAktivieren();
-                aktiviereNeuesSpiel();
+                type = 'b';
+                deactivateColorSelection();
+                activateImageSelection();
+                activateNewGame();
             }
         });
-        rdbtnBP.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnBP.setBounds(6, 75, 159, 23);
-        panelPuzzleArt.add(rdbtnBP);
+        rdbtnImagePuzzle.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnImagePuzzle.setBounds(6, 75, 159, 23);
+        panelPuzzleType.add(rdbtnImagePuzzle);
 
-        JPanel panelFarbe = new JPanel();
-        panelFarbe.setBorder(new TitledBorder(UIManager
-                .getBorder("TitledBorder.border"), "Farbe",
+        JPanel panelColor = new JPanel();
+        panelColor.setBorder(new TitledBorder(UIManager
+                .getBorder("TitledBorder.border"), "Color",
                 TitledBorder.CENTER, TitledBorder.TOP, new Font("Tahoma",
                 Font.PLAIN, 16), null));
-        panelFarbe.setBounds(620, 143, 82, 203);
-        contentPane.add(panelFarbe);
-        panelFarbe.setLayout(null);
+        panelColor.setBounds(620, 143, 82, 203);
+        contentPane.add(panelColor);
+        panelColor.setLayout(null);
 
-        rdbtnRot = new JRadioButton("rot");
-        rdbtnRot.addActionListener(new ActionListener()
+        rdbtnRed = new JRadioButton("red");
+        rdbtnRed.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aFarbe = 'r';
-                aktiviereNeuesSpiel();
+                color = 'r';
+                activateNewGame();
             }
         });
-        rdbtnRot.setForeground(Color.RED);
-        rdbtnRot.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnRot.setBounds(6, 41, 70, 23);
-        panelFarbe.add(rdbtnRot);
+        rdbtnRed.setForeground(Color.RED);
+        rdbtnRed.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnRed.setBounds(6, 41, 70, 23);
+        panelColor.add(rdbtnRed);
 
-        rdbtnGrn = new JRadioButton("gr\u00FCn");
-        rdbtnGrn.addActionListener(new ActionListener()
+        rdbtnGreen = new JRadioButton("green");
+        rdbtnGreen.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aFarbe = 'g';
-                aktiviereNeuesSpiel();
+                color = 'g';
+                activateNewGame();
             }
         });
-        rdbtnGrn.setForeground(Color.GREEN);
-        rdbtnGrn.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnGrn.setBounds(6, 95, 70, 23);
-        panelFarbe.add(rdbtnGrn);
+        rdbtnGreen.setForeground(Color.GREEN);
+        rdbtnGreen.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnGreen.setBounds(6, 95, 70, 23);
+        panelColor.add(rdbtnGreen);
 
-        rdbtnBlau = new JRadioButton("blau");
-        rdbtnBlau.addActionListener(new ActionListener()
+        rdbtnBlue = new JRadioButton("blue");
+        rdbtnBlue.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aFarbe = 'b';
-                aktiviereNeuesSpiel();
+                color = 'b';
+                activateNewGame();
             }
         });
-        rdbtnBlau.setForeground(Color.BLUE);
-        rdbtnBlau.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtnBlau.setBounds(6, 154, 70, 23);
-        panelFarbe.add(rdbtnBlau);
+        rdbtnBlue.setForeground(Color.BLUE);
+        rdbtnBlue.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnBlue.setBounds(6, 154, 70, 23);
+        panelColor.add(rdbtnBlue);
 
-        JPanel panelGroesse = new JPanel();
-        panelGroesse.setBorder(new TitledBorder(UIManager
-                .getBorder("TitledBorder.border"), "Gr\u00F6\u00DFe",
+        JPanel panelSize = new JPanel();
+        panelSize.setBorder(new TitledBorder(UIManager
+                .getBorder("TitledBorder.border"), "Size",
                 TitledBorder.CENTER, TitledBorder.TOP, new Font("Tahoma",
                 Font.PLAIN, 16), null));
-        panelGroesse.setBounds(709, 143, 82, 203);
-        contentPane.add(panelGroesse);
-        panelGroesse.setLayout(null);
+        panelSize.setBounds(709, 143, 82, 203);
+        contentPane.add(panelSize);
+        panelSize.setLayout(null);
 
-        rdbtn2 = new JRadioButton("2X2");
-        rdbtn2.addActionListener(new ActionListener()
+        rdbtnSizeTwo = new JRadioButton("2X2");
+        rdbtnSizeTwo.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aGroesse = 2;
-                aktiviereNeuesSpiel();
+                size = 2;
+                activateNewGame();
             }
         });
-        rdbtn2.setForeground(Color.BLACK);
-        rdbtn2.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtn2.setBounds(6, 41, 70, 23);
-        panelGroesse.add(rdbtn2);
+        rdbtnSizeTwo.setForeground(Color.BLACK);
+        rdbtnSizeTwo.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnSizeTwo.setBounds(6, 41, 70, 23);
+        panelSize.add(rdbtnSizeTwo);
 
-        rdbtn3 = new JRadioButton("3X3");
-        rdbtn3.addActionListener(new ActionListener()
+        rdbtnSizeThree = new JRadioButton("3X3");
+        rdbtnSizeThree.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aGroesse = 3;
-                aktiviereNeuesSpiel();
+                size = 3;
+                activateNewGame();
             }
         });
-        rdbtn3.setForeground(Color.BLACK);
-        rdbtn3.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtn3.setBounds(6, 95, 70, 23);
-        panelGroesse.add(rdbtn3);
+        rdbtnSizeThree.setForeground(Color.BLACK);
+        rdbtnSizeThree.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnSizeThree.setBounds(6, 95, 70, 23);
+        panelSize.add(rdbtnSizeThree);
 
-        rdbtn4 = new JRadioButton("4X4");
-        rdbtn4.addActionListener(new ActionListener()
+        rdbtnSizeFour = new JRadioButton("4X4");
+        rdbtnSizeFour.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                aGroesse = 4;
-                aktiviereNeuesSpiel();
+                size = 4;
+                activateNewGame();
             }
         });
-        rdbtn4.setForeground(Color.BLACK);
-        rdbtn4.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        rdbtn4.setBounds(6, 154, 70, 23);
-        panelGroesse.add(rdbtn4);
+        rdbtnSizeFour.setForeground(Color.BLACK);
+        rdbtnSizeFour.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        rdbtnSizeFour.setBounds(6, 154, 70, 23);
+        panelSize.add(rdbtnSizeFour);
 
-        btnNeuesSpiel = new JButton("Neues Spiel");
-        btnNeuesSpiel.setEnabled(false);
-        btnNeuesSpiel.addActionListener(new ActionListener()
+        btnNewGame = new JButton("New game");
+        btnNewGame.setEnabled(false);
+        btnNewGame.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                clickNeuesSpiel();
+                clickNewGame();
             }
         });
-        btnNeuesSpiel.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        btnNeuesSpiel.setBounds(620, 507, 171, 45);
-        contentPane.add(btnNeuesSpiel);
+        btnNewGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        btnNewGame.setBounds(620, 507, 171, 45);
+        contentPane.add(btnNewGame);
 
-        btnSpielBeenden = new JButton("Spiel beenden");
-        btnSpielBeenden.addActionListener(new ActionListener()
+        btnCloseGame = new JButton("Close game");
+        btnCloseGame.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent arg0)
             {
-                clickEnde();
+                clickClose();
             }
         });
-        btnSpielBeenden.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        btnSpielBeenden.setBounds(620, 563, 171, 45);
-        contentPane.add(btnSpielBeenden);
+        btnCloseGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        btnCloseGame.setBounds(620, 563, 171, 45);
+        contentPane.add(btnCloseGame);
 
-        JLabel lblTxtRest = new JLabel("Rest-Klicks:");
-        lblTxtRest.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        lblTxtRest.setBounds(630, 625, 96, 33);
-        contentPane.add(lblTxtRest);
+        JLabel lblNumberOfClicks = new JLabel("Clicks:");
+        lblNumberOfClicks.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        lblNumberOfClicks.setBounds(630, 625, 96, 33);
+        contentPane.add(lblNumberOfClicks);
 
-        lblRestKlicks = new JLabel("");
-        lblRestKlicks.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        lblRestKlicks.setBounds(716, 625, 75, 33);
-        contentPane.add(lblRestKlicks);
+        this.lblNumberOfClicks = new JLabel("");
+        this.lblNumberOfClicks.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        this.lblNumberOfClicks.setBounds(716, 625, 75, 33);
+        contentPane.add(this.lblNumberOfClicks);
 
-        // Radiobuttons werden zu Buttongroups hinzugef�gt
-        groupPuzzleArt = new ButtonGroup();
-        groupPuzzleArt.add(rdbtnZP);
-        groupPuzzleArt.add(rdbtnBP);
+        // Radio buttons are added to button groups
+        groupPuzzleType = new ButtonGroup();
+        groupPuzzleType.add(rdbtnNumberPuzzle);
+        groupPuzzleType.add(rdbtnImagePuzzle);
 
-        groupFarben = new ButtonGroup();
-        groupFarben.add(rdbtnRot);
-        groupFarben.add(rdbtnGrn);
-        groupFarben.add(rdbtnBlau);
+        groupColors = new ButtonGroup();
+        groupColors.add(rdbtnRed);
+        groupColors.add(rdbtnGreen);
+        groupColors.add(rdbtnBlue);
 
-        groupGroesse = new ButtonGroup();
-        groupGroesse.add(rdbtn2);
-        groupGroesse.add(rdbtn3);
-        groupGroesse.add(rdbtn4);
+        groupSize = new ButtonGroup();
+        groupSize.add(rdbtnSizeTwo);
+        groupSize.add(rdbtnSizeThree);
+        groupSize.add(rdbtnSizeFour);
 
-        groupBilder = new ButtonGroup();
-        groupBilder.add(rdbtnBild1);
-        groupBilder.add(rdbtnBild2);
-        groupBilder.add(rdbtnBild3);
+        groupImages = new ButtonGroup();
+        groupImages.add(rdbtnImage1);
+        groupImages.add(rdbtnImage2);
+        groupImages.add(rdbtnImage3);
 
-        // Standardwerte
-        aTyp = 'x';
-        aFarbe = 'x';
-        aGroesse = -1;
-        bildAusgewaehlt = false;
+        // Standard values
+        type = 'x';
+        color = 'x';
+        size = -1;
+        isImageSelected = false;
 
-        // Erstellung der Assoziation zur Steuerung
-        dieSteuerung = new Steuerung(this);
+        controller = new Controller(this);
     }
 
-    // Auswahl der Bilder wird aktiviert
-    private void bilderAuswahlAktivieren()
+    // Image selection gets activated
+    private void activateImageSelection()
     {
-        rdbtnBild1.setEnabled(true);
-        rdbtnBild2.setEnabled(true);
-        rdbtnBild3.setEnabled(true);
+        rdbtnImage1.setEnabled(true);
+        rdbtnImage2.setEnabled(true);
+        rdbtnImage3.setEnabled(true);
     }
 
-    // Auswahl der Bilder wird deaktiviert
-    private void bilderAuswahlDeaktivieren()
+    // Image selection gets deactivated
+    private void deactivateImageSelection()
     {
-        // Zur�cksetzung von bildAusgewaehlt
-        bildAusgewaehlt = false;
-        groupBilder.clearSelection();
+        // Reset
+        isImageSelected = false;
+        groupImages.clearSelection();
 
-        rdbtnBild1.setEnabled(false);
-        rdbtnBild2.setEnabled(false);
-        rdbtnBild3.setEnabled(false);
+        rdbtnImage1.setEnabled(false);
+        rdbtnImage2.setEnabled(false);
+        rdbtnImage3.setEnabled(false);
     }
 
-    // Das ausgew�hlte Bild von der GUI wird entsprechend dimensioniert
-    private void bildAuswaehlen(int pIndex)
+    // Scale the selected image
+    private void selectImage(int pIndex)
     {
-        // bildAusgewaehlt wird f�r die Aktivierung des JButtons "Neues Spiel"
-        // verwendet
-        bildAusgewaehlt = true;
+        isImageSelected = true;
 
-        // Ein ImageIcon mit dem ausgew�hlten Bild wird initialisiert
-        // Die Bilder befinden sich im res-Ordner
+        // The predefined images are in the Images directory
         switch (pIndex)
         {
             case 0:
-                anfangsBild = new ImageIcon(this.getClass().getResource(
-                        "/Images/Bild1.jpg"));
+                startingImage = new ImageIcon(this.getClass().getResource(
+                        "/Images/Image1.jpg"));
                 break;
             case 1:
-                anfangsBild = new ImageIcon(this.getClass().getResource(
-                        "/Images/Bild2.jpg"));
+                startingImage = new ImageIcon(this.getClass().getResource(
+                        "/Images/Image2.jpg"));
                 break;
             case 2:
-                anfangsBild = new ImageIcon(this.getClass().getResource(
-                        "/Images/Bild3.jpg"));
+                startingImage = new ImageIcon(this.getClass().getResource(
+                        "/Images/Image3.jpg"));
                 break;
             default:
                 break;
         }
 
-        // Die Gr��e des Bildes wird angepasst
-        geaendertesBild = anfangsBild.getImage().getScaledInstance(
+        // Adjust the size of the image
+        changedImage = startingImage.getImage().getScaledInstance(
                 panelPuzzle.getSize().width, panelPuzzle.getSize().height,
                 Image.SCALE_DEFAULT);
-        aktiviereNeuesSpiel();
+        activateNewGame();
     }
 
-    // JButton "Neues Spiel" wird nur dann aktiviert, wenn der Spieler alles
-    // richtig ausw�hlt
-    private void aktiviereNeuesSpiel()
+    // JButton "New game" only gets activated, when the player makes the right selection
+    private void activateNewGame()
     {
-        // Spieler hat ein Typ und eine Gr��e ausgew�hlt
-        if (aTyp != 'x' && aGroesse != -1)
+        // Player has selected a type and a size
+        if (type != 'x' && size != -1)
         {
-            // Spieler hat Zahlenpuzzle und eine Farbe ausgew�hlt
-            if (aTyp == 'z' && aFarbe != 'x')
+            // Player has selected number puzzle and a color
+            if (type == 'z' && color != 'x')
             {
-                // Spiel kann starten
-                btnNeuesSpiel.setEnabled(true);
+                // Game can start
+                btnNewGame.setEnabled(true);
             }
             else
-                // Spieler hat Bilderpuzzle und ein Bild ausgew�hlt (von der GUI
-                // oder vom Computer)
-                if (aTyp == 'b' && bildAusgewaehlt == true)
+                // Player has selected image puzzle and an image (from the user interface or
+                // their own image)
+                if (type == 'b' && isImageSelected == true)
                 {
-                    // Spiel kann starten
-                    btnNeuesSpiel.setEnabled(true);
+                    // Game can start
+                    btnNewGame.setEnabled(true);
                 }
                 else
                 {
-                    // Spiel kann nicht starten
-                    btnNeuesSpiel.setEnabled(false);
+                    // Game can't start
+                    btnNewGame.setEnabled(false);
                 }
         }
         else
         {
-            // Spiel kann nicht starten
-            btnNeuesSpiel.setEnabled(false);
+            // Game can't start
+            btnNewGame.setEnabled(false);
         }
     }
 
-    // Spieler sucht sich ein Bild vom Computer aus und nicht von der GUI
-    private void clickBildOeffnen()
+    // Player chooses their own image
+    private void clickOpenImage()
     {
-        JFileChooser dateiSuchen;
-        File datei = null;
+        JFileChooser searchFile;
+        File file = null;
 
-        int wert;
+        int value;
 
-        dateiSuchen = new JFileChooser();
-        wert = dateiSuchen.showOpenDialog(null);
+        searchFile = new JFileChooser();
+        value = searchFile.showOpenDialog(null);
 
-        if (wert != 1)
+        if (value != 1)
         {
-            // Spieler hat ein Bild ausgew�hlt
-            if (wert == JFileChooser.APPROVE_OPTION)
+            // Player has selected an image
+            if (value == JFileChooser.APPROVE_OPTION)
             {
-                bildAusgewaehlt = true;
+                isImageSelected = true;
 
-                datei = dateiSuchen.getSelectedFile();
-                // Der Pfad zum Bild wird ermittelt
-                dateiPfad = datei.getAbsolutePath();
+                file = searchFile.getSelectedFile();
+                // Get path to file
+                filePath = file.getAbsolutePath();
 
-                // Bild wird als ImageIcon gespeichert
-                anfangsBild = new ImageIcon(dateiPfad);
+                // Image is wrapped as an ImageIcon object
+                startingImage = new ImageIcon(filePath);
 
-                // Die Gr��e des Bildes wird angepasst
-                geaendertesBild = anfangsBild.getImage().getScaledInstance(
+                // Adjust the size of the image
+                changedImage = startingImage.getImage().getScaledInstance(
                         panelPuzzle.getSize().width,
                         panelPuzzle.getSize().height, Image.SCALE_DEFAULT);
 
-                aktiviereNeuesSpiel();
+                activateNewGame();
             }
         }
     }
 
-    // Fenster mit dem Referenzbild wird ge�ffnet
-    private void oeffneBild(String pDatei)
+    // Open new window with a reference image
+    private void openImage(String pFile)
     {
-        // Erstellung des JFrames
-        frameReferenz = new JFrame();
-        frameReferenz.setVisible(true);
-        frameReferenz.setTitle("Referenzbild");
-        frameReferenz.setResizable(false);
-        frameReferenz.setBounds(0, 0, panelPuzzle.getWidth(),
+        // Create the JFrame
+        frameReference = new JFrame();
+        frameReference.setVisible(true);
+        frameReference.setTitle("Reference image");
+        frameReference.setResizable(false);
+        frameReference.setBounds(0, 0, panelPuzzle.getWidth(),
                 panelPuzzle.getHeight());
-        frameReferenz.setLocationRelativeTo(null);
+        frameReference.setLocationRelativeTo(null);
 
-        // Erstellung des JPanels
-        JPanel bildPanel = new JPanel();
-        bildPanel.setBounds(0, 0, panelPuzzle.getWidth(),
+        // Create the JPanel
+        JPanel imagePanel = new JPanel();
+        imagePanel.setBounds(0, 0, panelPuzzle.getWidth(),
                 panelPuzzle.getHeight());
-        frameReferenz.getContentPane().add(bildPanel);
+        frameReference.getContentPane().add(imagePanel);
 
-        // Bild wird als ein ImageIcon von einem Label gezeichnet
-        JLabel bildLabel = new JLabel(new ImageIcon(geaendertesBild));
+        // Image gets drawn as an ImageIcon of a label
+        JLabel imageLabel = new JLabel(new ImageIcon(changedImage));
 
-        // Aktualisierung des JPanels
-        bildPanel.removeAll();
-        bildPanel.add(bildLabel);
-        bildPanel.revalidate();
-        bildPanel.repaint();
+        // Update the JPanel
+        imagePanel.removeAll();
+        imagePanel.add(imageLabel);
+        imagePanel.revalidate();
+        imagePanel.repaint();
     }
 
-    // Spieler dr�ckt aus JButton "Spiel beenden"
-    private void clickEnde()
+    // Player clicks the "Close game" button
+    private void clickClose()
     {
-        // Spieler hat gerade ein Spiel gewonnen oder verloren
-        if (dieSteuerung.getZustand() == "lost"
-                || dieSteuerung.getZustand() == "won")
+        // Player won or lost a game
+        if (controller.getState() == "lost"
+                || controller.getState() == "won")
         {
-            // Spielzustand wird zur�ckgesetzt
-            dieSteuerung.setZustand("init");
+            // Reset the game state
+            controller.setState("init");
 
-            // Alle JButtons werden vom panelPuzzle gel�scht
+            // Remove all JButtons
             panelPuzzle.removeAll();
 
-            // Wenn Spieler gerade ein Bilderpuzzle gespielt hat
-            if (aTyp == 'b')
+            // Player just played an image puzzle
+            if (type == 'b')
             {
-                // Fenster mit Referenzbild wird geschlossen
-                frameReferenz.dispatchEvent(new WindowEvent(frameReferenz,
+                // Close the window with the reference image
+                frameReference.dispatchEvent(new WindowEvent(frameReference,
                         WindowEvent.WINDOW_CLOSING));
             }
 
-            // Anzahl der Klicks wird auf "" zur�ckgesetzt
-            schreibeRestKlicks(-1);
+            // Reset the number of clicks
+            updateRemainedClicks(-1);
 
-            // Attribute werden auf ihre Standardwerte zur�ckgesetzt
-            aTyp = 'x';
-            aFarbe = 'x';
-            aGroesse = -1;
-            bildAusgewaehlt = false;
+            // Standard values are set again
+            type = 'x';
+            color = 'x';
+            size = -1;
+            isImageSelected = false;
 
-            // JButton "Neues Spiel" wird deaktiviert -> Spieler muss erneut
-            // alles richtig ausw�hlen
-            btnNeuesSpiel.setEnabled(false);
+            // The "New game" JButton gets deactivated
+            btnNewGame.setEnabled(false);
 
-            // Alles was vorher ausgew�hlt wurde, wird gel�scht
-            groupPuzzleArt.clearSelection();
-            groupFarben.clearSelection();
-            groupGroesse.clearSelection();
-            groupBilder.clearSelection();
+            // Release all selection
+            groupPuzzleType.clearSelection();
+            groupColors.clearSelection();
+            groupSize.clearSelection();
+            groupImages.clearSelection();
 
-            // panelPuzzle wird aktualisiert
+            // Update the panelPuzzle
             panelPuzzle.revalidate();
             panelPuzzle.repaint();
 
-            // Alle Radiobuttons von den 4 Buttongroups werden aktiviert
-            Enumeration<AbstractButton> enumeration = groupFarben.getElements();
+            // Activate the radio buttons
+            Enumeration<AbstractButton> enumeration = groupColors.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(true);
             }
 
-            enumeration = groupGroesse.getElements();
+            enumeration = groupSize.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(true);
             }
 
-            enumeration = groupPuzzleArt.getElements();
+            enumeration = groupPuzzleType.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(true);
             }
 
-            enumeration = groupBilder.getElements();
+            enumeration = groupImages.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(true);
@@ -621,329 +614,298 @@ public class GUI extends JFrame
         }
     }
 
-    // Spieler dr�ckt auf JButton "Neues Spiel"
-    private void clickNeuesSpiel()
+    // Player clicks the "New game" JButton
+    private void clickNewGame()
     {
-        // Spieler hat gerade ein neues Spiel angefangen
-        if (dieSteuerung.getZustand() == "init")
+        if (controller.getState() == "init")
         {
-            // Spieler hat Zahlenpuzzle ausgew�hlt
-            if (aTyp == 'z')
+            // Number puzzle
+            if (type == 'z')
             {
                 panelPuzzle.removeAll();
+                initPuzzleField(size);
+                setColorOfFields(color);
+                controller.startNewGame(type, size);
 
-                // Das Puzzlefeld wird mit der ausgew�hlten Gr��e erstellt
-                initPuzzleFeld(aGroesse);
-
-                // Die ausgew�hlte Farbe wird eingestellt
-                setzeTastenFarbe(aFarbe);
-
-                // Spiel f�ngt an
-                dieSteuerung.neuesSpiel(aTyp, aGroesse);
-
-                // panelPuzzle wird aktualisiert
+                // Update panelPuzzle
                 panelPuzzle.revalidate();
                 panelPuzzle.repaint();
             }
 
             else
-                // Spieler hat Bilderpuzzle ausgew�hlt
-                if (aTyp == 'b')
+                // Image puzzle
+                if (type == 'b')
                 {
-                    // Schrittweite wird berechnet
-                    int schritt = panelPuzzle.getWidth() / aGroesse;
+                    // Calculate step size of an image part
+                    int stepSize = panelPuzzle.getWidth() / size;
 
-                    // Z�hler wird deklariert
-                    int count = 0;
+                    int counter = 0;
 
-                    // Liste mit den Bilderteile wird erstellt
-                    bildTeile = new Image[aGroesse * aGroesse];
+                    imageParts = new Image[size * size];
 
-                    // Bild wird in aGroesse * aGroesse St�cke geteilt
-                    for (int i = 0; i < panelPuzzle.getWidth(); i += schritt)
+                    // Image gets divided in sizexsize parts
+                    for (int i = 0; i < panelPuzzle.getWidth(); i += stepSize)
                     {
-                        for (int j = 0; j < panelPuzzle.getHeight(); j += schritt)
+                        for (int j = 0; j < panelPuzzle.getHeight(); j += stepSize)
                         {
-                            // Wenn das letzte Teil erreicht wird
-                            if (j == panelPuzzle.getHeight() - schritt
-                                    && i == panelPuzzle.getWidth() - schritt)
+                            // Last part
+                            if (j == panelPuzzle.getHeight() - stepSize
+                                    && i == panelPuzzle.getWidth() - stepSize)
                             {
-                                // Das letzte Bildteil wird wegen der
-                                // Leertaste nicht gespeichert
-                                bildTeile[count] = null;
+                                // The last part must be the spacebar
+                                imageParts[counter] = null;
                             }
-                            // Sonst wird das Bildteil gespeichert
+                            // If not the last image part
                             else
                             {
-                                // Bild wird mithilfe von j und i geteilt
-                                // schritt ist die L�nge und Breite des Teils
-                                bildTeile[count] = createImage(new FilteredImageSource(
-                                        geaendertesBild.getSource(),
-                                        new CropImageFilter(j, i, schritt,
-                                                schritt)));
+                                // Size of an image part
+                                imageParts[counter] = createImage(new FilteredImageSource(
+                                        changedImage.getSource(),
+                                        new CropImageFilter(j, i, stepSize,
+                                                stepSize)));
                             }
-                            // Z�hler wird inkrementiert
-                            count++;
+                            counter++;
                         }
                     }
 
                     panelPuzzle.removeAll();
+                    initPuzzleField(size);
 
-                    // Das Puzzlefeld wird mit der ausgew�hlten Gr��e erstellt
-                    initPuzzleFeld(aGroesse);
+                    controller.startNewGame(type, size);
 
-                    // Spiel f�ngt an
-                    dieSteuerung.neuesSpiel(aTyp, aGroesse);
-
-                    // panelPuzzle wird aktualisiert
                     panelPuzzle.revalidate();
                     panelPuzzle.repaint();
 
-                    // Fenster mit Referenzbild wird ge�ffnet
-                    oeffneBild(dateiPfad);
+                    // Open window with the reference image
+                    openImage(filePath);
                 }
 
-            // Alle Radionbuttons von den 4 Buttongroups werden deaktiviert
-            Enumeration<AbstractButton> enumeration = groupFarben.getElements();
+            // Deactivate the radio buttons
+            Enumeration<AbstractButton> enumeration = groupColors.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(false);
             }
 
-            enumeration = groupGroesse.getElements();
+            enumeration = groupSize.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(false);
             }
 
-            enumeration = groupPuzzleArt.getElements();
+            enumeration = groupPuzzleType.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(false);
             }
 
-            enumeration = groupBilder.getElements();
+            enumeration = groupImages.getElements();
             while (enumeration.hasMoreElements())
             {
                 enumeration.nextElement().setEnabled(false);
             }
         }
         else
-            // Spieler hat gerade ein Spiel verloren oder gewonnen und dr�ckt
-            // auf "Neues Spiel" -> Neues Spiel startet mit den Einstellungen
-            // vom letzten Spiel
-            if (dieSteuerung.getZustand() == "won"
-                    || dieSteuerung.getZustand() == "lost")
+            // If player clicks again on the "New game" Button, a game with the
+            // same properties will be generated
+            if (controller.getState() == "won"
+                    || controller.getState() == "lost")
             {
-                // Neues Spiel startet ohne die vorherigen Einstellungen zu
-                // �ndern
-                dieSteuerung.neuesSpiel(aTyp, aGroesse);
+                controller.startNewGame(type, size);
 
-                // panelPuzzle wird aktualisiert
                 panelPuzzle.revalidate();
                 panelPuzzle.repaint();
             }
     }
 
-    // Der gedr�ckte JButton wird an die Steuerung weitergegeben
-    private void clickTaste(JButton pTaste)
+    // The clicked JButton is sent to the controller
+    private void clickField(JButton pField)
     {
-        for (int i = 0; i < aTastenFeld.length; i++)
+        for (int i = 0; i < listOfFields.length; i++)
         {
-            // JButton wird in der Liste aTastenFeld gesucht
-            if (aTastenFeld[i] == pTaste)
+            // Search for the field
+            if (listOfFields[i] == pField)
             {
-                // Sein Index wird an die Steuerung weitergegeben
-                dieSteuerung.tastenKlick(i);
+                // Index of the field
+                controller.onClickedField(i);
             }
         }
     }
 
-    // Aktualisierung der restlichen Klicks auf der GUI
-    public void schreibeRestKlicks(int pRestKlicks)
+    // Update the number of clicks
+    public void updateRemainedClicks(int pRemainedClicks)
     {
-        if (pRestKlicks == -1) // Wenn sich das Spiel im Zustand "init" befindet
-            lblRestKlicks.setText("");
+        if (pRemainedClicks == -1) // When the state is "init"
+            lblNumberOfClicks.setText("");
         else
-            lblRestKlicks.setText(Integer.toString(pRestKlicks));
+            lblNumberOfClicks.setText(Integer.toString(pRemainedClicks));
     }
 
-    // Spielzustand wird auf die GUI angezeigt
-    public void melde(int pTextNr)
+    // Show game state on the interface
+    public void message(int pTextNumber)
     {
-        switch (pTextNr)
+        switch (pTextNumber)
         {
             case 0:
-                lblMeldungsText
-                        .setText("Art, Farbe, Gr��e w�hlen; dann Spiel starten");
+                lblMessageText
+                        .setText("Choose type, color and size of the puzzle then start the game");
                 break;
 
             case 1:
-                lblMeldungsText
-                        .setText("Taste durch Klicken mit Leertaste tauschen");
+                lblMessageText
+                        .setText("Click a field to swap it with the spacebar");
                 break;
 
             case 2:
-                lblMeldungsText.setText("Verloren - Puzzle wurde nicht gel�st");
+                lblMessageText.setText("You lost!");
                 break;
 
             case 3:
-                lblMeldungsText.setText("Gewonnen - Puzzle wurde gel�st");
+                lblMessageText.setText("You won, congratz!");
                 break;
         }
     }
 
-    // JButtons werden durchnummeriert
-    public void setzeTastenZahlen(int[] zahlenFeld)
+    // Number the JButtons
+    public void setNumberOfFields(int[] numberField)
     {
-        for (int i = 0; i < zahlenFeld.length; i++)
+        for (int i = 0; i < numberField.length; i++)
         {
-            // Nicht Leertaste
-            if (zahlenFeld[i] != -1)
+            // Not the spacebar
+            if (numberField[i] != -1)
             {
-                // JButton bekommt eine Zahl
-                aTastenFeld[i].setText(Integer.toString(zahlenFeld[i]));
+                // JButton gets a number
+                listOfFields[i].setText(Integer.toString(numberField[i]));
             }
-            // Bei Leertaste
+            // Spacebar
             else
             {
-                // JButton bekommt keine Zahl
-                aTastenFeld[i].setText("");
+                // JButton gets no number
+                listOfFields[i].setText("");
             }
         }
     }
 
-    // Zahlen der JButtons bekommen eine Farbe
-    private void setzeTastenFarbe(char pFarbe)
+    // Numbers of the JButtons get a color
+    private void setColorOfFields(char pColor)
     {
-        for (int i = 0; i < aTastenFeld.length; i++)
+        for (int i = 0; i < listOfFields.length; i++)
         {
-            if (pFarbe == 'r') // rot
+            if (pColor == 'r') // red
             {
-                aTastenFeld[i].setForeground(Color.red);
+                listOfFields[i].setForeground(Color.red);
             }
             else
-            if (pFarbe == 'g') // gr�n
+            if (pColor == 'g') // green
             {
-                aTastenFeld[i].setForeground(Color.green);
+                listOfFields[i].setForeground(Color.green);
             }
             else
-            if (pFarbe == 'b') // blau
+            if (pColor == 'b') // blue
             {
-                aTastenFeld[i].setForeground(Color.blue);
+                listOfFields[i].setForeground(Color.blue);
             }
         }
     }
 
-    // Initialisierung des Puzzlefeldes
-    private void initPuzzleFeld(int pGroesse)
+    // Init of the puzzle field
+    private void initPuzzleField(int pSize)
     {
-        // L�nge der Liste aTastenFeld wird berechnet
-        int anzahlTasten = pGroesse * pGroesse;
+        int numberOfFields = pSize * pSize;
 
-        // Berechnung der L�nge und Breite eines JButtons
-        int kantenLaenge = groessePanelPuzzle / pGroesse;
+        // Calculation of the length and width of a JButton
+        int length = sizeOfPanelPuzzle / pSize;
 
-        // Erstellung der Liste mit den JButtons
-        aTastenFeld = new JButton[anzahlTasten];
+        listOfFields = new JButton[numberOfFields];
 
-        // Schleife durch die Liste aTastenFeld
-        for (int i = 0; i < anzahlTasten; i++)
+        for (int i = 0; i < numberOfFields; i++)
         {
-            // index ist final, damit es im ActionListener von unten sichtbar
-            // ist
             final int index = i;
 
-            // Berechnung der x und y Koordinaten des JButtons
-            int x = i % pGroesse;
-            int y = i / pGroesse;
+            // Calculate x and y coordinates of the JButton
+            int x = i % pSize;
+            int y = i / pSize;
 
-            aTastenFeld[i] = new JButton("");
-            // Jeder JButton bekommt einen ActionListener, der beim Dr�cken
-            // ausgef�hrt wird
-            aTastenFeld[i].addActionListener(new ActionListener()
+            listOfFields[i] = new JButton("");
+            // Every JButton gets an ActionListener that gets triggered
+            // when clicked on
+            listOfFields[i].addActionListener(new ActionListener()
             {
                 public void actionPerformed(ActionEvent arg0)
                 {
-                    // Zahlenpuzzle
-                    if (aTyp == 'z')
+                    // Number puzzle
+                    if (type == 'z')
                     {
-                        // Wenn JButton nicht die Leertaste ist
-                        if (aTastenFeld[index].getText() != "")
+                        // Not spacebar
+                        if (listOfFields[index].getText() != "")
                         {
-                            // Dann wird der Klick erkannt; Beim Dr�cken der
-                            // Leertaste sollte nichts passieren
-                            clickTaste(aTastenFeld[index]);
+                            clickField(listOfFields[index]);
                         }
                     }
                     else
-                        // Bilderpuzzle
-                        if (aTyp == 'b')
+                        // Image puzzle
+                        if (type == 'b')
                         {
-                            // Wenn JButton nicht die Leertaste ist
-                            if (aTastenFeld[index].getIcon().getIconWidth() != -1)
+                            // Not spacebar
+                            if (listOfFields[index].getIcon().getIconWidth() != -1)
                             {
-                                // Dann wird der Klick erkannt; Beim Dr�cken der
-                                // Leertaste sollte nichts passieren
-                                clickTaste(aTastenFeld[index]);
+                                clickField(listOfFields[index]);
                             }
                         }
                 }
             });
-            aTastenFeld[i].setFont(new Font("Tahoma", Font.PLAIN, 100));
+            listOfFields[i].setFont(new Font("Tahoma", Font.PLAIN, 100));
 
-            // Mithilfe von den obenberechneten x und y, wird die Position des
-            // JButtons auf dem panelPuzzle berechnet
-            aTastenFeld[i].setBounds(x * kantenLaenge, y * kantenLaenge,
-                    kantenLaenge, kantenLaenge);
+            // Position of the JButton
+            listOfFields[i].setBounds(x * length, y * length,
+                    length, length);
 
-            // JButton wird auf den panelPuzzle gezeichnet
-            panelPuzzle.add(aTastenFeld[i]);
+            // Draw JButton
+            panelPuzzle.add(listOfFields[i]);
         }
     }
 
-    // Radiobuttons der Farbenauswahl werden aktiviert
-    private void farbenAuswahlAktivieren()
+    // Activate radio buttons for color selection
+    private void activateColorSelection()
     {
-        rdbtnRot.setEnabled(true);
-        rdbtnGrn.setEnabled(true);
-        rdbtnBlau.setEnabled(true);
+        rdbtnRed.setEnabled(true);
+        rdbtnGreen.setEnabled(true);
+        rdbtnBlue.setEnabled(true);
     }
 
-    // Radiobuttons der Farbenauswahl werden deaktiviert
-    private void farbenAuswahlDeaktivieren()
+    // Deactivate radio buttons for color selection
+    private void deactivateColorSelection()
     {
-        aFarbe = 'x'; // Zur�cksetzung von aFarbe
-        groupFarben.clearSelection();
+        color = 'x'; // Reset
+        groupColors.clearSelection();
 
-        rdbtnRot.setEnabled(false);
-        rdbtnGrn.setEnabled(false);
-        rdbtnBlau.setEnabled(false);
+        rdbtnRed.setEnabled(false);
+        rdbtnGreen.setEnabled(false);
+        rdbtnBlue.setEnabled(false);
     }
 
-    // Bilderteile werden auf den JButtons gezeichnet
-    public void setzeTastenBilder(Image[] pBilderFeld)
+    // Draw image parts on the JButtons
+    public void setImageOfFields(Image[] pImageField)
     {
-        for (int i = 0; i < pBilderFeld.length; i++)
+        for (int i = 0; i < pImageField.length; i++)
         {
-            // Wenn Bildteil nicht der Leertaste entspricht
-            if (pBilderFeld[i] != null)
+            // Not spacebar
+            if (pImageField[i] != null)
             {
-                // Dann zeichne das Bildteil auf den JButton
-                aTastenFeld[i].setIcon(new ImageIcon(pBilderFeld[i]));
+                // Draw the image part on the JButton
+                listOfFields[i].setIcon(new ImageIcon(pImageField[i]));
             }
-            // Wenn Bild der Leertaste entspricht, dann bekommt der entprechende
-            // JButton kein Bild
+            // If spacebar then no image
             else
             {
-                aTastenFeld[i].setIcon(new ImageIcon());
+                listOfFields[i].setIcon(new ImageIcon());
             }
         }
     }
 
     // Getter
-    public Image[] getBildTeile()
+    public Image[] getImageParts()
     {
-        return bildTeile;
+        return imageParts;
     }
 }
