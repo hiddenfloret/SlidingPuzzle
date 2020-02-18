@@ -15,7 +15,7 @@ public class NumberPuzzle extends SlidingPuzzle
 
     // Looks if puzzle got solved
     @Override
-    public boolean puzzleGeloest()
+    public boolean puzzleSolved()
     {
         for (int i = 0; i < numberField.length; i++)
         {
@@ -45,6 +45,7 @@ public class NumberPuzzle extends SlidingPuzzle
     }
 
     // Returns the index of the spacebar
+    @Override
     public int getIndexOfSpacebar()
     {
         for (int i = 0; i < numberField.length; i++)
@@ -133,11 +134,11 @@ public class NumberPuzzle extends SlidingPuzzle
         // It is possible that after the shuffle, the puzzle isn't still mixed.
         // That's why it checks if the puzzle is solved and shuffles it again
         // till it is mixed indeed
-        isSolved = puzzleGeloest();
+        isSolved = puzzleSolved();
         while (isSolved)
         {
             shuffle(pSize, shuffles);
-            isSolved = puzzleGeloest();
+            isSolved = puzzleSolved();
         }
 
         // Return the shuffled field
@@ -146,11 +147,11 @@ public class NumberPuzzle extends SlidingPuzzle
 
     // Field gets n times shuffled, this way the created puzzle
     // will always have a solution
-    private void shuffle(int pSize, int pSwaps)
+    private void shuffle(int pSize, int pShuffles)
     {
         int x, y;
 
-        for (int i = 0; i < pSwaps; i++)
+        for (int i = 0; i < pShuffles; i++)
         {
             // Get index of spacebar
             int indexOfSpacebar = getIndexOfSpacebar();

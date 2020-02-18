@@ -15,8 +15,9 @@ public abstract class SlidingPuzzle
         return ++numOfClicks;
     }
 
-    // Abstract Function
-    public abstract boolean puzzleGeloest();
+    // Abstract Functions
+    public abstract boolean puzzleSolved();
+    public abstract int getIndexOfSpacebar();
 
     // Getters
     protected int getSize()

@@ -2,150 +2,139 @@ import java.awt.Image;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Bilderpuzzle extends Schiebepuzzle
+public class ImagePuzzle extends SlidingPuzzle
 {
-    private Image[] loesung, aBilderFeld;
+    private Image[] solution, imageField;
     private Random random;
 
-    public Bilderpuzzle(int pGroesse, Image[] pLoesung)
+    public ImagePuzzle(int pSize, Image[] pSolution)
     {
-        // Ausf�hrung des Konstruktors von der Mutterklasse
-        super(pGroesse);
+        super(pSize);
         random = new Random();
-
-        // L�sung wird gespeichert, da das Array noch nicht gemischt wurde
-        loesung = pLoesung;
-        erzeugeBilderFeld();
+        solution = pSolution;
+        initImageField();
     }
 
-    private void erzeugeBilderFeld()
+    private void initImageField()
     {
-        int groesse;
+        int size;
 
-        groesse = gibGroesse();
+        size = getSize();
 
-        // Bilderfeld erstellen und mischen
-        aBilderFeld = mischeBilderFeld(groesse);
+        // Create and shuffle image field
+        imageField = shuffleImageField(size);
     }
 
-    // Das Bilderfeld wird gemischt
-    private Image[] mischeBilderFeld(int pGroesse)
+    // Shuffle image field
+    private Image[] shuffleImageField(int pSize)
     {
-        // Liste wird erstellt
-        aBilderFeld = new Image[pGroesse * pGroesse];
+        imageField = new Image[pSize * pSize];
 
-        // Bevor das Puzzle gemischt wird, wird die L�sung kopiert. Diese wird
-        // sp�ter f�r die �berpr�fung ob das Puzzle gel�st wurde, verwendet.
-        for (int j = 0; j < aBilderFeld.length; j++)
+        // The starting point before the shuffle is the solution.
+        // This will later be used to check if the puzzle is solved
+        for (int j = 0; j < imageField.length; j++)
         {
-            aBilderFeld[j] = loesung[j];
+            imageField[j] = solution[j];
         }
 
-        // Wie oft die Bilderteile miteinander getauscht werden
-        int anzahlTauschAktionen = 1000;
-        boolean geloest;
+        // Number of shuffles
+        int shuffles = 1000;
+        boolean isSolved;
 
-        // Puzzle wird 1000 gemischt
-        mische(pGroesse, anzahlTauschAktionen);
+        // Shuffling puzzle 1000 times
+        shuffle(pSize, shuffles);
 
-        // Es kann sein (besonders beim 2x2 Puzzle), dass nach den 1000
-        // Tauschaktionen das Puzzle nicht gemischt wurde, sondern zur�ck auf
-        // den Startzustand kommt. Deshalb wird es �berpr�ft ob das Puzzle nach
-        // dem Mischen "gel�st" wurde. Wenn ja dann wird das Puzzle solange
-        // gemischt bis das Puzzle richtig gemischt wurde.
-        geloest = puzzleGeloest();
-        while (geloest)
+        // It is possible that after the shuffle, the puzzle isn't still mixed.
+        // That's why it checks if the puzzle is solved and shuffles it again
+        // till it is mixed indeed
+        isSolved = puzzleSolved();
+        while (isSolved)
         {
-            mische(pGroesse, anzahlTauschAktionen);
-            geloest = puzzleGeloest();
+            shuffle(pSize, shuffles);
+            isSolved = puzzleSolved();
         }
 
-        // Gemischtes Bilderfeld zur�ckgeben
-        return aBilderFeld;
+        // Return the shuffled field
+        return imageField;
     }
 
-    // Puzzle wird n mal gemischt
-    private void mische(int pGroesse, int pAnzahlTauschAktionen)
+    // Field gets n times shuffled, this way the created puzzle
+    // will always have a solution
+    private void shuffle(int pSize, int pShuffles)
     {
         int x, y;
 
-        // Das Zahlenfeld mischen; Dabei werden die Zahlen von der
-        // obenerstellten Liste zuf�llig miteinander getauscht, damit immer ein
-        // l�sbares Puzzle generiert werden kann
-        for (int i = 0; i < pAnzahlTauschAktionen; i++)
+        for (int i = 0; i < pShuffles; i++)
         {
-            // Index der Leertaste holen
-            int idxLeerTaste = gibLeerTasteIdx();
+            // Get index of spacebar
+            int indexOfSpacebar = getIndexOfSpacebar();
 
-            // Index der Leertaste wird mithilfe von x und y in einem
-            // zweidimensionalen Array dargestellt
-            x = idxLeerTaste % pGroesse;
-            y = idxLeerTaste / pGroesse;
+            // Index of the spacebar is depicted as x and y coordinates in
+            // a two dimensional array
+            x = indexOfSpacebar % pSize;
+            y = indexOfSpacebar / pSize;
 
-            // Index eines zuf�lligen Nachbar holen und mit diesen den Platz
-            // tauschen
-            int idxNachbar = gibZufaelligerNachbar(x, y);
-            tauscheTastenwerte(idxNachbar, idxLeerTaste);
+            // Get index of a random neighbor and swap places with him
+            int indexOfNeighbor = getRandomNeighbor(x, y);
+            swapFieldValues(indexOfNeighbor, indexOfSpacebar);
         }
     }
 
-    // Schaue ob Puzzle gel�st wurde
+    // Looks if puzzle got solved
     @Override
-    public boolean puzzleGeloest()
+    public boolean puzzleSolved()
     {
-        // Schleife durch die Liste
-        for (int i = 0; i < aBilderFeld.length; i++)
+        for (int i = 0; i < imageField.length; i++)
         {
-            // Vergleiche jedes Element des Bilderfeldes mit dem aus der L�sung
-            if (aBilderFeld[i] != loesung[i])
+            // Compare every element of the image field with the solution
+            if (imageField[i] != solution[i])
             {
-                // Nicht gel�st
+                // Not solved
                 return false;
             }
         }
-        // gel�st
+        // Solved
         return true;
     }
 
-    // Index der Leertaste zur�ckgeben
-    public int gibLeerTasteIdx()
+    // Returns the index of the spacebar
+    @Override
+    public int getIndexOfSpacebar()
     {
-        // Schleife durch die Liste
-        for (int i = 0; i < aBilderFeld.length; i++)
+        for (int i = 0; i < imageField.length; i++)
         {
-            // Leertaste wird als null dargestellt
-            if (aBilderFeld[i] == null)
+            // The spacebar is depicted as null
+            if (imageField[i] == null)
             {
-                // Gebe sein Index zur�ck
+                // Return the index
                 return i;
             }
         }
-        return -1; // Error, da immer eine Leertaste geben muss
+        return -1; // Error, because there always should be a spacebar
     }
 
-    // Zuf�lliger und g�ltiger Nachbar zur�ckgeben
-    public void tauscheTastenwerte(int pIdxTaste, int pIdxLeertaste)
+    // Swaps spacebar with a neighbor field. These two must be neighbors
+    public void swapFieldValues(int pFieldIndex, int pSpacebarIndex)
     {
-        int x1, y1, x2, y2, groesse;
-        Image zwischenspeicher;
-        boolean benachbart = false;
+        int x1, y1, x2, y2, size;
+        Image temp;
+        boolean isNeighbor = false;
 
-        groesse = gibGroesse();
+        size = getSize();
 
-        // F�r beide Tasten den Index aus dem eindimensionalen Array in x und y
-        // Komponenten zerlegen. (siehe Abiturpr�fung Aufgabe 4.5.2)
-        x1 = pIdxTaste % groesse;
-        x2 = pIdxLeertaste % groesse;
+        // Convert index of field to x and y components
+        x1 = pFieldIndex % size;
+        x2 = pSpacebarIndex % size;
 
-        y1 = pIdxTaste / groesse;
-        y2 = pIdxLeertaste / groesse;
+        y1 = pFieldIndex / size;
+        y2 = pSpacebarIndex / size;
 
-        // �berpr�fung der Nachbarschaft (siehe Abiturpr�fung Aufgabe 4.5.2.2)
+        // Checks if they are neigbors
         if (x1 == x2)
         {
             if (Math.abs(y1 - y2) == 1)
             {
-                benachbart = true;
+                isNeighbor = true;
             }
         }
         else
@@ -153,81 +142,79 @@ public class Bilderpuzzle extends Schiebepuzzle
         {
             if (Math.abs(x1 - x2) == 1)
             {
-                benachbart = true;
+                isNeighbor = true;
             }
         }
 
-        // Wenn die Tasten benachbart sind
-        if (benachbart)
+        if (isNeighbor)
         {
-            // Pl�tze tauschen
-            zwischenspeicher = aBilderFeld[pIdxTaste];
-            aBilderFeld[pIdxTaste] = aBilderFeld[pIdxLeertaste];
-            aBilderFeld[pIdxLeertaste] = zwischenspeicher;
+            // Swap places
+            temp = imageField[pFieldIndex];
+            imageField[pFieldIndex] = imageField[pSpacebarIndex];
+            imageField[pSpacebarIndex] = temp;
         }
     }
 
-    // Zuf�lliger und g�ltiger Nachbar zur�ckgeben
-    private int gibZufaelligerNachbar(int pX, int pY)
+    // Returns random and valid neighbor of a field
+    private int getRandomNeighbor(int pX, int pY)
     {
-        int xNachbar, yNachbar;
-        int idxNachbar;
-        int factor = gibGroesse();
-        ArrayList<Integer> nachbaren = new ArrayList<Integer>();
+        int xNeighbor, yNeighbor;
+        int indexOfNeighbor;
+        int factor = getSize();
+        ArrayList<Integer> neighbors = new ArrayList<Integer>();
 
-        // Nachbar von links
-        xNachbar = pX - 1;
-        yNachbar = pY;
+        // Left neighbor
+        xNeighbor = pX - 1;
+        yNeighbor = pY;
 
-        // Formel um auf den Index des Nachbars zu kommen
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Formula to get index of neighbor
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        // Ist der Index des Nachbars g�ltig? Eine Taste kann maximal vier
-        // g�ltige Nachbaren haben. Eine Taste die sich in einer Ecke befindet
-        // hat z. B. nur zwei g�ltige Nachbaren. Deshalb muss es �berpr�ft
-        // werden, ob der Nachbar g�ltig ist.
-        if (idxNachbar >= 0 && idxNachbar < aBilderFeld.length)
+        // Checks if the index of neighbor is valid, because some fields,
+        // especially those in corners, have four neighbors but only two
+        // are valid
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < imageField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Nachbar von rechts
-        xNachbar = pX + 1;
-        yNachbar = pY;
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Right neighbor
+        xNeighbor = pX + 1;
+        yNeighbor = pY;
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        if (idxNachbar >= 0 && idxNachbar < aBilderFeld.length)
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < imageField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Nachbar von oben
-        xNachbar = pX;
-        yNachbar = pY - 1;
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Upper neighbor
+        xNeighbor = pX;
+        yNeighbor = pY - 1;
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        if (idxNachbar >= 0 && idxNachbar < aBilderFeld.length)
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < imageField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Nachbar von unten
-        xNachbar = pX;
-        yNachbar = pY + 1;
-        idxNachbar = factor * yNachbar + xNachbar;
+        // Bottom neighbor
+        xNeighbor = pX;
+        yNeighbor = pY + 1;
+        indexOfNeighbor = factor * yNeighbor + xNeighbor;
 
-        if (idxNachbar >= 0 && idxNachbar < aBilderFeld.length)
+        if (indexOfNeighbor >= 0 && indexOfNeighbor < imageField.length)
         {
-            nachbaren.add(idxNachbar);
+            neighbors.add(indexOfNeighbor);
         }
 
-        // Ein zuf�lliger Nachbar zur�ckgeben
-        return nachbaren.get(random.nextInt(nachbaren.size()));
+        // Return a random neighbor
+        return neighbors.get(random.nextInt(neighbors.size()));
     }
 
     // Getter
-    public Image[] gibBilderFeld()
+    public Image[] getImageField()
     {
-        return aBilderFeld;
+        return imageField;
     }
 }
